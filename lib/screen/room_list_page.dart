@@ -194,7 +194,7 @@ class _RoomListPageState extends State<RoomListPage> {
                       ),
                   ],
                 ),
-                title: Text(room.name),
+                title: Text(room.name + ", id : " +room.id.toString()),
                 subtitle: room.type == QRoomType.single
                     ? Text(
                         lastMessage,

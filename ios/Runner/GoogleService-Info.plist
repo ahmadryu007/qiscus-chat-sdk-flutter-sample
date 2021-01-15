@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CLIENT_ID</key>
+    <string>363945998930-rksn67dg9v58iphdgu1fj0dkadutpoft.apps.googleusercontent.com</string>
+    <key>REVERSED_CLIENT_ID</key>
+    <string>com.googleusercontent.apps.363945998930-rksn67dg9v58iphdgu1fj0dkadutpoft</string>
+    <key>API_KEY</key>
+    <string>AIzaSyAfetBgZ7lGWaMI9uTXR6nNeR4ugHotQYI</string>
+    <key>GCM_SENDER_ID</key>
+    <string>363945998930</string>
+    <key>PLIST_VERSION</key>
+    <string>1</string>
+    <key>BUNDLE_ID</key>
+    <string>com.dwidasa.chat</string>
+    <key>PROJECT_ID</key>
+    <string>dwidasa-chat</string>
+    <key>STORAGE_BUCKET</key>
+    <string>dwidasa-chat.appspot.com</string>
+    <key>IS_ADS_ENABLED</key>
+    <false></false>
+    <key>IS_ANALYTICS_ENABLED</key>
+    <false></false>
+    <key>IS_APPINVITE_ENABLED</key>
+    <true></true>
+    <key>IS_GCM_ENABLED</key>
+    <true></true>
+    <key>IS_SIGNIN_ENABLED</key>
+    <true></true>
+    <key>GOOGLE_APP_ID</key>
+    <string>1:363945998930:ios:1ce0494dd714f15731fd8b</string>
+</dict>
+</plist>

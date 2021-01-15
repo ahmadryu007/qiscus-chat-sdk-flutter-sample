@@ -2,10 +2,14 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:date_format/date_format.dart';
+import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:grouped_list/grouped_list.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:qiscus_chat_sample/data/system_event_request.dart';
 import 'package:qiscus_chat_sdk/qiscus_chat_sdk.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -15,9 +19,7 @@ import '../widget/avatar_widget.dart';
 import '../widget/chat_bubble_widget.dart';
 import 'chat_room_detail_page.dart';
 
-enum _PopupMenu {
-  detail,
-}
+enum _PopupMenu { detail, videocall, voicecall }
 
 class ChatPage extends StatefulWidget {
   final QiscusSDK qiscus;
@@ -49,6 +51,8 @@ class _ChatPageState extends State<ChatPage> {
   StreamSubscription<QMessage> _onMessageReceivedSubscription;
   StreamSubscription<QMessage> _onMessageReadSubscription;
   StreamSubscription<QMessage> _onMessageDeliveredSubscription;
+  static const MethodChannel _channel =
+      const MethodChannel('qiscusmeet_plugin');
 
   final messageInputController = TextEditingController();
   final scrollController = ScrollController();
@@ -62,6 +66,9 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
+
+    _permissionHandler();
+
     qiscus = widget.qiscus;
     account = widget.account;
     room = widget.room;
@@ -198,6 +205,14 @@ class _ChatPageState extends State<ChatPage> {
                   child: Text('Detail'),
                   value: _PopupMenu.detail,
                 ),
+                PopupMenuItem(
+                  child: Text('Voice Call'),
+                  value: _PopupMenu.voicecall,
+                ),
+                PopupMenuItem(
+                  child: Text('Video Call'),
+                  value: _PopupMenu.videocall,
+                )
               ];
             },
             onSelected: (menu) async {
@@ -208,6 +223,20 @@ class _ChatPageState extends State<ChatPage> {
                     account: account,
                     room: this.room,
                   ));
+                  break;
+                case _PopupMenu.videocall:
+                  // _channel.invokeMethod("video_call", {
+                  //   "roomId": this.room.id.toString(),
+                  //   "userId": this.room.name
+                  // });
+                  _callAction(true);
+                  break;
+                case _PopupMenu.voicecall:
+                  // _channel.invokeMethod("voice_call", {
+                  //   "roomId": this.room.id.toString(),
+                  //   "userId": this.room.name
+                  // });
+                  _callAction(false);
                   break;
                 default:
                   break;
@@ -350,6 +379,12 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _onMessageReceived(QMessage message) async {
     final lastMessage = room.lastMessage;
+
+    if (message.sender.name == "System") {
+      _channel.invokeMethod("video_call",
+          {"roomId": this.room.id.toString(), "userId": this.room.name});
+    }
+
     setState(() {
       this.messages.addAll({
         message.uniqueId: message,
@@ -443,5 +478,51 @@ class _ChatPageState extends State<ChatPage> {
         this.lastOnline = data.lastOnline;
       });
     });
+  }
+
+  Future<void> _callAction(bool isVideo) async {
+    try {
+      SystemEventRequest data = SystemEventRequest(
+          systemEventType: "custom",
+          message: "Call Incoming",
+          subjectEmail: "call@dwidasa.com",
+          roomId: this.room.id.toString(),
+          payload: Payload(
+              type: "call",
+              callEvent: "incoming",
+              callRoomId: this.room.id.toString(),
+              callIsVideo: isVideo,
+              callCaller: CallCalle(
+                  avatar: this.account.avatarUrl,
+                  name: this.account.name,
+                  username: this.account.id),
+              callCallee: CallCalle(
+                  avatar: this.room.participants[0].avatarUrl,
+                  name: this.room.participants[0].name,
+                  username: this.room.participants[0].id)));
+      Response response = await Dio().post(
+          "https://api.qiscus.com/api/v2.1/rest/post_system_event_message",
+          data: data.toJson(),
+          options: Options(headers: {
+            'QISCUS-SDK-APP-ID': 'kawan-seh-g857ffuuw9b',
+            'QISCUS_SDK_SECRET': 'c7f3ab87acc3843a1b81d77c2b4d6b0c'
+          }));
+      print(response);
+
+      _channel.invokeMethod("video_call",
+          {"roomId": this.room.id.toString(), "userId": this.room.name});
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> _permissionHandler() async {
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.camera,
+      Permission.storage,
+      Permission.microphone,
+      Permission.calendar
+    ].request();
+    print(statuses[Permission.location]);
   }
 }
